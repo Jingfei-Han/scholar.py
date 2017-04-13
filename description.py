@@ -611,7 +611,30 @@ class ScholarArticleParser120201(ScholarArticleParser):
     This class reflects update to the Scholar results page layout that
     Google recently.
     """
-	#更新内容解析器，2012年2月1号更新，继承ScholarArticleParser基类
+	#更新内容解析器，2012年2月1号更新，继承ScholarArticleParser基类，与现在有出入
+    """
+    <div class="gs_r">
+        <h3 class="gs_rt">
+            <a href="url, and pdf">
+                title
+            </a>
+        </h3>
+
+        <div class="gs_a">
+            year
+        </div>
+
+        <span class="gs_fl">
+            <a href="url_citations, and cluster_id">
+                num_citations
+            </a>  两个/a通过href的链接开始来分辨
+            <a href="url_versions">
+                num_versions
+            </a>
+        </span>
+    </div>
+
+    """
     def _parse_article(self, div):
         self.article = ScholarArticle()
 
@@ -703,6 +726,7 @@ class ScholarQuery(object):
     """
     The base class for any kind of results query we send to Scholar.
     """
+    #向google发送查询，基类
     def __init__(self):
         self.url = None
 
@@ -768,6 +792,7 @@ class ScholarQuery(object):
         This comes in handy during the composition of certain queries.
         """
         if query.find(',') < 0:
+            #没有找到','，就直接返回
             return query
         phrases = []
         for phrase in query.split(','):
