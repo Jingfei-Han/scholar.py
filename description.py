@@ -454,6 +454,30 @@ class ScholarArticleParser(object):
     def _parse_article(self, div):
         self.article = ScholarArticle()
 
+		"""
+		此处记录基类中文章表示的article结构分析
+		<div class="gs_r">
+			<div class="gs_rt>
+				<h3>
+					<a href="url">
+						title
+					</a>
+				</h3>
+			</div>
+
+			<font>
+				<span class="gs_fl">
+					<a href="url_citations, and cluster_id">
+						num_citations
+					</a>  两个/a通过href的链接开始来分辨
+					<a href="url_versions">
+						num_versions
+					</a>
+				</span>
+			</font>
+		</div>
+
+		"""
         for tag in div:
 			#在div下的tag中
             if not hasattr(tag, 'name'):
@@ -473,6 +497,7 @@ class ScholarArticleParser(object):
 			#由于网页改变导致问题，此处目的为找到引用等数据
             if tag.name == 'font':
                 for tag2 in tag:
+					#分析论文的引用信息
                     if not hasattr(tag2, 'name'):
                         continue
                     if tag2.name == 'span' and \
@@ -480,6 +505,7 @@ class ScholarArticleParser(object):
                         self._parse_links(tag2)
 
     def _parse_links(self, span):
+		#该方法目的：得到引用数、引用论文链接、cluster_id、版本数、版本数链接
         for tag in span:
             if not hasattr(tag, 'name'):
                 continue
@@ -498,6 +524,8 @@ class ScholarArticleParser(object):
                 # in the results page as well. Same applies to
                 # versions URL in next if-block.
 
+				#url_citations格式如下：
+				#url_citations = "/scholar?cites=6684210683255418787&as_sdt=2005&sciodt=0,5&hl=en"
 				#article的url_citations用于记录引用链接------很重要
 				#去除引用链接中num字段------------------------原因？
                 self.article['url_citations'] = \
@@ -506,11 +534,15 @@ class ScholarArticleParser(object):
                 # We can also extract the cluster ID from the versions
                 # URL. Note that we know that the string contains "?",
                 # from the above if-statement.
+				#clusterid是cites字段的值,存到article的cluster_id中
                 args = self.article['url_citations'].split('?', 1)[1]
                 for arg in args.split('&'):
                     if arg.startswith('cites='):
                         self.article['cluster_id'] = arg[6:]
 
+			#记录版本个数及版本链接，去掉num字段
+			#比如：All 4 versions，链接是：
+			#/scholar?cluster=6684210683255418787&hl=en&as_as_sdt=0,5"
             if tag.get('href').startswith('/scholar?cluster'):
                 if hasattr(tag, 'string') and tag.string.startswith('All '):
                     self.article['num_versions'] = \
@@ -518,6 +550,7 @@ class ScholarArticleParser(object):
                 self.article['url_versions'] = \
                     self._strip_url_arg('num', self._path2url(tag.get('href')))
 
+			#以Import开头的，直接赋值给url_citation
             if tag.getText().startswith('Import'):
                 self.article['url_citation'] = self._path2url(tag.get('href'))
 
@@ -578,6 +611,7 @@ class ScholarArticleParser120201(ScholarArticleParser):
     This class reflects update to the Scholar results page layout that
     Google recently.
     """
+	#更新内容解析器，2012年2月1号更新，继承ScholarArticleParser基类
     def _parse_article(self, div):
         self.article = ScholarArticle()
 
